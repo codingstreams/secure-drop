@@ -3,7 +3,7 @@ spring:
     name: secure-drop
 
   datasource:
-    url: ${DB_BASE_URL}/dev_db
+    url: ${DB_BASE_URL}/secure_drop_db
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     hikari:
@@ -14,4 +14,25 @@ spring:
       connection-timeout: 30000
 
   jpa:
+    hibernate:
+      ddl-auto: update
     show-sql: true
+
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 60MB
+
+server:
+  address: 0.0.0.0
+  port: 5767
+
+error-docs:
+  url: http://192.168.1.216:5768/errors
+
+file:
+  upload-dir: temp/secure-drop-uploads
+
+encryption:
+  algorithm: ${SECURE_DROP_ENC_ALGO}
+  secret-key: ${SECURE_DROP_ENC_KEY}
