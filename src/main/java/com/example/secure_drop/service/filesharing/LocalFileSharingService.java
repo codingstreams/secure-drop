@@ -4,6 +4,7 @@ import java.nio.file.Path;
 import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
@@ -170,6 +171,29 @@ public class LocalFileSharingService implements FileSharingService {
     log.debug("Download URL constructed: {}", url);
 
     return url;
+  }
+
+  @Override
+  public List<FileUploadResponse> listAllFilesMetadata() {
+    log.debug("Starting to fetch all files metadata");
+
+    var filesMetadata = fileMetadataRepo.findAll();
+
+    log.info("Fetched {} files metadata", filesMetadata.size());
+
+    return filesMetadata.stream()
+        .map(fileMetadata -> {
+          var fileUploadResponse = new FileUploadResponse(fileMetadata.getAccessCode(),
+              fileMetadata.getFileName(),
+              fileMetadata.getExpiryDate().toLocalDateTime(), "");
+
+          log.debug("Created FileUploadResponse for file: {}",
+              fileMetadata.getFileName());
+
+          return fileUploadResponse;
+        })
+        .toList();
+
   }
 
 }

@@ -3,6 +3,8 @@ package com.example.secure_drop.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
+
 import org.jspecify.annotations.NonNull;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -41,6 +43,17 @@ public class FileSharingController {
         .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + wrapper.originalFileName() + "\"")
         .contentType(MediaType.parseMediaType(wrapper.contentType()))
         .body(wrapper.resource());
+  }
+
+  @GetMapping("/")
+  public ResponseEntity<List<FileUploadResponse>> getAllFilesMetadata() {
+    log.debug("Received request to fetch all files metadata");
+
+    var filesMetadata = fileSharingService.listAllFilesMetadata();
+
+    log.info("Fetched {} files metadata", filesMetadata.size());
+
+    return ResponseEntity.ok(filesMetadata);
   }
 
   @GetMapping("/{accessCode}/info")

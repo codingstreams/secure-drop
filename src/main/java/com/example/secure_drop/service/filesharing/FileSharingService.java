@@ -1,5 +1,7 @@
 package com.example.secure_drop.service.filesharing;
 
+import java.util.List;
+
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.secure_drop.dto.FileDownloadWrapper;
@@ -12,5 +14,7 @@ public interface FileSharingService {
   FileDownloadWrapper getFile(String accessCode);
 
   FileUploadResponse getFileInfo(String accessCode);
+
+  List<FileUploadResponse> listAllFilesMetadata();
 
 }
