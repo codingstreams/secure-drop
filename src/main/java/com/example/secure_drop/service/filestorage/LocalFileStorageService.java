@@ -1,26 +1,21 @@
 package com.example.secure_drop.service.filestorage;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.UUID;
-
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.util.FileSystemUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.example.secure_drop.config.EncryptionProperties;
 import com.example.secure_drop.config.FileStorageProperties;
 import com.example.secure_drop.exception.ResourceNotFoundException;
-import com.example.secure_drop.service.encryption.EncryptionService;
-
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,8 +25,6 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class LocalFileStorageService implements FileStorageService {
   private final FileStorageProperties fileStorageProperties;
-  private final EncryptionProperties encryptionProperties;
-  private final EncryptionService encryptionService;
 
   @Override
   @PostConstruct
@@ -55,7 +48,23 @@ public class LocalFileStorageService implements FileStorageService {
   }
 
   @Override
-  public String store(MultipartFile file) {
+  public void deleteAll() {
+    log.warn("DELETING ALL FILES in root storage: {}", fileStorageProperties.getUploadDir());
+    try {
+      // Recursively delete everything in the 'uploads' folder
+      FileSystemUtils.deleteRecursively(getRootPath());
+
+      // Re-initialize the directory so it's ready for new uploads
+      this.init();
+      log.info("Storage re-initialized successfully.");
+    } catch (IOException e) {
+      log.error("Failed to delete all files: {}", e.getMessage());
+      throw new RuntimeException("Could not delete storage contents", e);
+    }
+  }
+
+  @Override
+  public String store(MultipartFile file, String accessCode) {
     log.info("Starting to store file: {}", file.getOriginalFilename());
 
     var originalFilename = Optional.ofNullable(file.getOriginalFilename())
@@ -75,18 +84,19 @@ public class LocalFileStorageService implements FileStorageService {
         throw new RuntimeException("Cannot store empty file.");
       }
 
-      // Encrypt File
-      var encrypted = encryptionService.encrypt(file.getBytes(), encryptionProperties.getSecretKey());
+      String physicalFilename = accessCode + "_" + System.currentTimeMillis() + "_" + file.getOriginalFilename();
 
-      var fileName = UUID.randomUUID().toString();
+      log.debug("Generated unique filename: {}", physicalFilename);
 
-      log.debug("Generated unique filename: {}", fileName);
+      var destination = getRootPath()
+          .resolve(Paths.get(physicalFilename))
+          .normalize()
+          .toAbsolutePath();
 
-      Path destination = Path.of(fileStorageProperties.getUploadDir(), fileName);
-      Files.copy(new ByteArrayInputStream(encrypted), destination, StandardCopyOption.REPLACE_EXISTING);
+      Files.copy(file.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
 
       log.info("File successfully stored at: {}", destination.toAbsolutePath());
-      return fileName;
+      return destination.toString();
     } catch (IOException e) {
       log.error("Failed to store file: {}", filePath, e);
       throw new RuntimeException("File storage failed.", e);
@@ -96,48 +106,38 @@ public class LocalFileStorageService implements FileStorageService {
   }
 
   @Override
-  public Resource load(Path path) {
-    log.info("Loading file from {}", path);
-    var resource = new FileSystemResource(path);
+  public Resource load(String storagePath) {
+    log.info("Loading file from {}", storagePath);
+    var resource = new FileSystemResource(storagePath);
 
     if (!resource.exists()) {
-      log.warn("Requested file does not exist: {}", path);
-      throw new ResourceNotFoundException(path.toString());
+      log.warn("Requested file does not exist: {}", storagePath);
+      throw new ResourceNotFoundException(storagePath);
     }
 
-    try {
-      var file = encryptionService.decrypt(resource.getContentAsByteArray(), encryptionProperties.getSecretKey());
-      log.debug("Decryption successful for file {}", path);
-
-      return new ByteArrayResource(file);
-    } catch (Exception e) {
-      log.error("Failed to decrypt file {}", path, e);
-      throw new RuntimeException(e);
-    }
+    return resource;
   }
 
   @Override
-  public boolean delete(Path path) {
-    log.info("Attempting to delete file at {}", path);
+  public boolean delete(String storagePath) {
+    log.info("Attempting to delete file at {}", storagePath);
     try {
-      boolean deleted = Files.deleteIfExists(path);
+      boolean deleted = Files.deleteIfExists(Path.of(storagePath));
       if (deleted) {
-        log.info("Successfully deleted file at {}", path);
+        log.info("Successfully deleted file at {}", storagePath);
       } else {
-        log.warn("File not found, nothing deleted at {}", path);
+        log.warn("File not found, nothing deleted at {}", storagePath);
       }
       return deleted;
     } catch (IOException e) {
-      log.error("Failed to delete file at {}", path, e);
+      log.error("Failed to delete file at {}", storagePath, e);
       throw new RuntimeException(e);
     }
   }
 
   @Override
-  public void deleteAll() {
-    log.info("deleteAll() called - not yet implemented");
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'deleteAll'");
+  public Path getRootPath() {
+    return Path.of(fileStorageProperties.getUploadDir());
   }
 
 }

@@ -46,8 +46,8 @@ public class GlobalExceptionHandler {
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problem);
   }
 
-  @ExceptionHandler(MaxDownloadsExceededException.class)
-  public ResponseEntity<@NonNull ProblemDetail> handleMaxDownloads(MaxDownloadsExceededException ex,
+  @ExceptionHandler(DownloadLimitExceededException.class)
+  public ResponseEntity<@NonNull ProblemDetail> handleMaxDownloads(DownloadLimitExceededException ex,
       HttpServletRequest request) {
     log.warn("Max downloads exceeded: {}", ex.getMessage());
     ProblemDetail problem = buildProblemDetail(HttpStatus.TOO_MANY_REQUESTS,

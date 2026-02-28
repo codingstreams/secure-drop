@@ -9,7 +9,6 @@ import com.example.secure_drop.model.FileMetadata;
 import com.example.secure_drop.repo.FileMetadataRepo;
 import com.example.secure_drop.service.filestorage.FileStorageService;
 
-import java.nio.file.Path;
 import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.LocalDateTime;
@@ -22,10 +21,10 @@ public class FileCleanupScheduler {
   private final FileStorageService fileStorageService;
   private final Clock clock;
 
-  @Scheduled(cron = "0 * * * * *")
+  @Scheduled(fixedDelay = 3600000)
   public void cleanupConsumedOrExpiredFiles() {
     var expiredOrConsumedFiles = fileMetadataRepo
-        .findByMaxDownloadsEqualsOrExpiryDateBefore(0, Timestamp.valueOf(LocalDateTime.now(clock)));
+        .findByMaxDownloadsEqualsOrExpiresAtBefore(0, clock.instant());
 
     if (expiredOrConsumedFiles.isEmpty()) {
       log.debug("No consumed or expired files found for cleanup.");
@@ -33,7 +32,7 @@ public class FileCleanupScheduler {
     }
 
     for (FileMetadata file : expiredOrConsumedFiles) {
-      var filePath = Path.of(file.getStoragePath());
+      var filePath = file.getStoragePath();
       try {
         boolean deleted = fileStorageService.delete(filePath);
 

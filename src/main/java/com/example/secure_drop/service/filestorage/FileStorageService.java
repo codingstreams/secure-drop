@@ -6,13 +6,16 @@ import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface FileStorageService {
+
   void init();
 
-  String store(MultipartFile file);
+  String store(MultipartFile file, String accessCode);
 
-  Resource load(Path path);
+  Resource load(String storagePath);
 
-  boolean delete(Path path);
+  boolean delete(String storagePath);
 
-  void deleteAll();
+  Path getRootPath();
+
+  public void deleteAll();
 }

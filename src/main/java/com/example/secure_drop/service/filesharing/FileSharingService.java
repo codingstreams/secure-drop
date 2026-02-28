@@ -1,20 +1,26 @@
 package com.example.secure_drop.service.filesharing;
 
-import java.util.List;
-
+import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.example.secure_drop.dto.FileDownloadWrapper;
-import com.example.secure_drop.dto.FileUploadResponse;
+import com.example.secure_drop.dto.file.FileResponseDto;
+import com.example.secure_drop.dto.file.UpdateFileSettingsDto;
 
 public interface FileSharingService {
 
-  FileUploadResponse uploadFile(MultipartFile file);
+  FileResponseDto uploadFile(MultipartFile file, String ownerId, int hours, int maxDownloads);
 
-  FileDownloadWrapper getFile(String accessCode);
+  FileResponseDto getFileMetadata(String accessCode);
 
-  FileUploadResponse getFileInfo(String accessCode);
+  Resource downloadFile(String accessCode);
 
-  List<FileUploadResponse> listAllFilesMetadata();
+  Page<FileResponseDto> listUserFiles(String ownerId, Pageable pageable);
 
+  FileResponseDto updateFileSettings(String accessCode, String ownerId, UpdateFileSettingsDto settings);
+
+  FileResponseDto publishToPublicPool(String accessCode, String ownerId);
+
+  void deleteFile(String accessCode, String ownerId);
 }
