@@ -1,97 +1,84 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
-
 @import "tailwindcss";
 
-@theme {
-  /* ... (Your existing colors/shadows) ... */
-  --color-ghost-bg: #0f172a;
-  --color-ghost-surface: #1e293b;
-  --color-ghost-accent: #64748b;
-  --color-ghost-text: #f1f5f9;
-  --color-ghost-primary: #3b82f6;
+/* --- LIGHT MODE (DEFAULT) --- */
+:root {
+  --bg-main: #f8fafc;
+  /* Light slate gray */
+  --bg-card: #ffffff;
+  /* Pure white cards */
+  --text-main: #0f172a;
+  /* Deep navy text */
+  --text-muted: #64748b;
+  /* Muted gray labels */
+  --accent-blue: #2563eb;
+  /* Stronger blue for visibility */
 
-  /* Use your refined shadows here */
-  --shadow-neo-flat: 6px 6px 16px rgba(0, 0, 0, 0.3), -6px -6px 16px rgba(255, 255, 255, 0.03);
-  --shadow-neo-pressed: inset 4px 4px 10px rgba(0, 0, 0, 0.4), inset -4px -4px 10px rgba(255, 255, 255, 0.03);
-
-  --font-sans: "Inter", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
-
+  --shadow-flat: 6px 6px 15px rgba(0, 0, 0, 0.05), -6px -6px 15px rgba(255, 255, 255, 0.8);
+  --shadow-pressed: inset 3px 3px 6px rgba(0, 0, 0, 0.05);
+  --border-color: rgba(0, 0, 0, 0.05);
 }
 
-@layer utilities {
-  .text-glow {
-    text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
-    /* Blue Glow */
-  }
+/* --- DARK MODE (ACTIVATED BY CLASS) --- */
+.dark {
+  --bg-main: #0f172a;
+  --bg-card: #1e293b;
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  --accent-blue: #3b82f6;
 
-  .text-glow-orange {
-    text-shadow: 0 0 20px rgba(249, 115, 22, 0.4);
-    /* Orange Glow */
-  }
+  --shadow-flat: 4px 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-pressed: inset 2px 2px 5px rgba(0, 0, 0, 0.5);
+  --border-color: rgba(255, 255, 255, 0.05);
 }
 
-/* --- SCROLLBAR REMOVAL & VIEWPORT LOCK --- */
-html,
-body,
-#root {
-  height: 100%;
-  width: 100%;
-  overflow: hidden;
-  margin: 0;
-  padding: 0;
-  background-color: var(--color-ghost-bg);
-  color: var(--color-ghost-text);
-  font-family: var(--font-sans);
-  overscroll-behavior: none;
-}
-
-/* Hide scrollbars but allow scrolling functionality */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-
-.no-scrollbar {
-  -ms-overflow-style: none;
-  /* IE and Edge */
-  scrollbar-width: none;
-  /* Firefox */
-}
-
-/* --- Global Polish --- */
+/* --- Global Application --- */
 body {
-  /* Spotlight gradient background */
-  background: radial-gradient(circle at 50% 0%, #1e293b 0%, var(--color-ghost-bg) 70%);
-  color: var(--color-ghost-text);
-  font-family: 'Inter', system-ui, sans-serif;
-  /* min-height: 100vh; */
-  margin: 0;
-  overflow-x: hidden;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  /* Smooth fade when switching */
 }
 
-/* Custom scrollbar to match theme */
+.shadow-neo-flat {
+  background-color: var(--bg-card);
+  box-shadow: var(--shadow-flat);
+  border: 1px solid var(--border-color);
+  border-radius: 1rem;
+}
+
+.shadow-neo-pressed {
+  background-color: var(--bg-main);
+  box-shadow: var(--shadow-pressed);
+  border: 1px solid var(--border-color);
+}
+
+/* 4. Scrollbar (Because the default one is ugly in dark mode) */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-ghost-bg);
+  background: var(--bg-dark);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-ghost-surface);
-  border-radius: 4px;
+  background: var(--bg-card);
+  border-radius: 10px;
 }
 
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+/* 5. Simple Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
 
-  color-scheme: light dark;
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+.animate-in {
+  animation: fadeIn 0.4s ease-out forwards;
 }
